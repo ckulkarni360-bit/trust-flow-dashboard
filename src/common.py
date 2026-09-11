@@ -37,10 +37,21 @@ def load_dataset(path: Path = RAW_DATA_PATH) -> DataFrame:
     :returns: The loaded dataset as a DataFrame.
     """
     if not path.exists():
-        raise FileNotFoundError(
-            f"{path} not found. Run `python data/generate_synthetic_data.py` first "
-            "(or point RAW_DATA_PATH at your real dataset)."
-        )
+        if path == RAW_DATA_PATH:
+            try:
+                import sys
+                gen_script = ROOT / "data" / "generate_synthetic_data.py"
+                if gen_script.exists():
+                    sys.path.insert(0, str(ROOT / "data"))
+                    import generate_synthetic_data
+                    generate_synthetic_data.generate()
+            except Exception:
+                pass
+        if not path.exists():
+            raise FileNotFoundError(
+                f"{path} not found. Run `python data/generate_synthetic_data.py` first "
+                "(or point RAW_DATA_PATH at your real dataset)."
+            )
     return pd.read_csv(path)
 
 

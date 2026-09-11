@@ -4,6 +4,7 @@ data/nodes/*.csv
 data/nodes/iid/*.csv
 data/nodes/noniid/*.csv
 !data/raw/.gitkeep
+!data/raw/synthetic_iot_traffic.csv
 !data/nodes/.gitkeep
 
 # Python
