@@ -104,28 +104,25 @@ COLOR_MUTED = "#859397"       # Stitch outline
 COLOR_TEXT = "#DFE2F1"        # Stitch on-surface
 COLOR_TEXT_MUTED = "#BBC9CD"  # Stitch on-surface-variant
 
-@st.cache_data(show_spinner=False)
-def load_bg_image_b64() -> str:
-    """Load and base64-encode the dashboard background image for CSS styling.
+VIDEO_BG = ASSETS_DIR / "cyber_bg.mp4"
 
-    :returns: Base64-encoded image string, or empty string if file is missing.
+@st.cache_data(show_spinner=False)
+def load_video_b64() -> str:
+    """Load and base64-encode the background video for inline embedding.
+
+    :returns: Base64-encoded mp4 string, or empty string if file is missing.
     """
-    target = BG_IMG if BG_IMG.exists() else SHIELD_IMG
-    if target.exists():
+    if VIDEO_BG.exists():
         try:
-            with open(target, "rb") as fh:
+            with open(VIDEO_BG, "rb") as fh:
                 return base64.b64encode(fh.read()).decode("utf-8")
         except Exception:
             return ""
     return ""
 
 
-_bg_b64 = load_bg_image_b64()
-_bg_img_layer = (
-    f'url("data:image/jpeg;base64,{_bg_b64}")'
-    if _bg_b64
-    else "none"
-)
+_video_b64 = load_video_b64()
+_bg_img_layer = "none"  # video replaces static image background
 
 CUSTOM_CSS = f"""
 <style>
@@ -188,20 +185,16 @@ html, body {{
 
     background-color: #0F131D;
     background-image:
-        /* Layer 1: fine stitch grid */
-        linear-gradient(rgba(34, 211, 238, 0.035) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(34, 211, 238, 0.035) 1px, transparent 1px),
-        /* Layer 2: coarse grid */
-        linear-gradient(rgba(34, 211, 238, 0.018) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(34, 211, 238, 0.018) 1px, transparent 1px),
-        /* Layer 3: cyan radial glow */
-        radial-gradient(ellipse 70% 55% at 15% 20%, rgba(34, 211, 238, 0.09) 0%, transparent 70%),
-        /* Layer 4: secondary blue radial glow */
-        radial-gradient(ellipse 65% 50% at 85% 80%, rgba(173, 198, 255, 0.07) 0%, transparent 70%),
-        /* Layer 5: photo overlay mask */
-        linear-gradient(rgba(15, 19, 29, 0.88), rgba(15, 19, 29, 0.94)),
-        /* Layer 7: the actual background photo */
-        {_bg_img_layer};
+        /* fine stitch grid */
+        linear-gradient(rgba(34, 211, 238, 0.030) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(34, 211, 238, 0.030) 1px, transparent 1px),
+        /* coarse grid */
+        linear-gradient(rgba(34, 211, 238, 0.015) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(34, 211, 238, 0.015) 1px, transparent 1px),
+        /* cyan radial glow */
+        radial-gradient(ellipse 70% 55% at 15% 20%, rgba(34, 211, 238, 0.07) 0%, transparent 70%),
+        /* blue radial glow */
+        radial-gradient(ellipse 65% 50% at 85% 80%, rgba(173, 198, 255, 0.05) 0%, transparent 70%);
 
     background-size:
         30px 30px,
@@ -209,20 +202,33 @@ html, body {{
         90px 90px,
         90px 90px,
         100% 100%,
-        100% 100%,
-        100% 100%,
-        100% 100%,
-        cover;
-    background-position:
-        0 0, 0 0, 0 0, 0 0,
-        center, center, center, center,
-        center;
-    background-repeat:
-        repeat, repeat, repeat, repeat,
-        no-repeat, no-repeat, no-repeat, no-repeat,
-        no-repeat;
+        100% 100%;
+    background-position: 0 0, 0 0, 0 0, 0 0, center, center;
+    background-repeat: repeat, repeat, repeat, repeat, no-repeat, no-repeat;
     background-attachment: fixed;
     animation: gridPan 12s linear infinite;
+}}
+
+/* Video background container */
+#tf-video-bg {{
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    z-index: -1;
+    overflow: hidden;
+    pointer-events: none;
+}}
+#tf-video-bg video {{
+    width: 100%; height: 100%;
+    object-fit: cover;
+    opacity: 0.18;
+    filter: brightness(0.7) saturate(1.3);
+}}
+#tf-video-bg::after {{
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(rgba(15,19,29,0.82), rgba(15,19,29,0.90));
 }}
 
 /* =========================================================
@@ -646,6 +652,18 @@ body::after {{
 st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
 
 # ---------------------------------------------------------------------------
+# FULLSCREEN VIDEO BACKGROUND
+# ---------------------------------------------------------------------------
+if _video_b64:
+    st.markdown(f"""
+<div id="tf-video-bg">
+    <video autoplay muted loop playsinline preload="auto">
+        <source src="data:video/mp4;base64,{_video_b64}" type="video/mp4">
+    </video>
+</div>
+""", unsafe_allow_html=True)
+
+# ---------------------------------------------------------------------------
 # PARTICLE NETWORK CANVAS — animated node/edge background (JS)
 # ---------------------------------------------------------------------------
 st.markdown("""
@@ -754,16 +772,16 @@ def render_auth_portal():
             st.image(str(SHIELD_IMG), use_container_width=True)
         st.markdown("""
         <div style="padding: 0.8rem 0.2rem 1rem 0.2rem;">
-            <div style="font-size: 1.25rem; font-weight: 800; color: #FFFFFF; margin-bottom: 0.4rem; letter-spacing: -0.01em;">
-                Byzantine-Resilient Cyber Threat Detection
+            <div style="font-size: 2.2rem; font-weight: 800; color: #FFFFFF; margin-bottom: 0.3rem; letter-spacing: -0.03em; line-height: 1.1;">
+                Trust<span style="color: #22D3EE; text-shadow: 0 0 20px rgba(34,211,238,0.6);">FL</span>
             </div>
-            <div style="font-size: 0.88rem; color: #94A3B8; line-height: 1.6; margin-bottom: 1rem;">
-                Defending decentralized edge IoT fleets from coordinated poisoning attacks. Privacy-preserving federated consensus ensures raw network packets never leave edge nodes while maintaining collective immunity.
+            <div style="font-size: 0.95rem; color: #94A3B8; margin-bottom: 1rem;">
+                Federated IoT Security Platform
             </div>
             <div style="display: flex; gap: 0.6rem; flex-wrap: wrap;">
-                <span class="tf-badge badge-trust"><span class="tf-badge-dot"></span> Zero-Trust Architecture</span>
-                <span class="tf-badge badge-warn"><span class="tf-badge-dot"></span> Cosine Consensus EMA</span>
-                <span class="tf-badge badge-alert"><span class="tf-badge-dot"></span> Poisoning Mitigation</span>
+                <span class="tf-badge badge-trust"><span class="tf-badge-dot"></span> Zero-Trust</span>
+                <span class="tf-badge badge-warn"><span class="tf-badge-dot"></span> Byzantine Resilient</span>
+                <span class="tf-badge badge-alert"><span class="tf-badge-dot"></span> Attack Detection</span>
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -771,13 +789,13 @@ def render_auth_portal():
     with col_auth:
         st.markdown("<br>", unsafe_allow_html=True)
         st.markdown("""
-        <div class="tf-card" style="border-top: 3px solid #3B82F6; padding: 2.2rem 2rem;">
+        <div class="tf-card" style="border-top: 3px solid #22D3EE; padding: 2.2rem 2rem;">
             <div style="text-align: center; margin-bottom: 1.5rem;">
-                <div class="tf-brand" style="justify-content: center; font-size: 1.6rem; margin-bottom: 0.3rem;">
-                    Trust<span>FL</span>
+                <div style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 2rem; font-weight: 800; letter-spacing: -0.03em; color: #FFFFFF; margin-bottom: 0.3rem;">
+                    Trust<span style="color: #22D3EE; text-shadow: 0 0 18px rgba(34,211,238,0.7);">FL</span>
                 </div>
-                <div style="font-size: 0.88rem; color: #94A3B8;">
-                    Byzantine-Resilient Federated Intrusion Detection System
+                <div style="font-size: 0.85rem; color: #64748B;">
+                    Sign in to your account
                 </div>
             </div>
         """, unsafe_allow_html=True)
@@ -859,27 +877,22 @@ user = st.session_state.auth_user or {"name": "Guest", "email": "guest@trustfl.o
 
 st.markdown(f"""
 <div class="tf-navbar">
-    <div style="display: flex; align-items: center; gap: 0.8rem; flex-wrap: wrap;">
-        <div class="tf-brand">
-            Trust<span>FL</span> <span style="font-size: 0.85rem; font-weight: 500; color: {COLOR_MUTED}; margin-left: 0.4rem;">/ Security Console</span>
+    <div style="display: flex; align-items: center; gap: 0.8rem;">
+        <div style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1.7rem; font-weight: 800; letter-spacing: -0.03em; color: #FFFFFF; line-height: 1;">
+            Trust<span style="color: #22D3EE; text-shadow: 0 0 18px rgba(34,211,238,0.7);">FL</span>
         </div>
-        <div style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.72rem; color: #859397; background: #1c1f2a; padding: 0.2rem 0.6rem; border-radius: 6px; border: 1px solid rgba(255,255,255,0.06); font-family: 'JetBrains Mono', monospace;">
-            <span>SPEC: ENCLAVE-DEFENSE-V4.2</span>
-        </div>
+        <span class="tf-badge badge-trust"><span class="tf-badge-dot"></span> Active</span>
     </div>
     <div style="display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;">
         <span class="tf-badge badge-trust">
-            <span class="tf-badge-dot"></span> 4 Nodes Connected
+            <span class="tf-badge-dot"></span> 4 Nodes
         </span>
         <span class="tf-badge" style="background: rgba(34,211,238,0.12); color: #8aebff; border: 1px solid rgba(34,211,238,0.25);">
-            Consensus: Cosine EMA
-        </span>
-        <span class="tf-badge" style="background: rgba(173,198,255,0.10); color: #adc6ff; border: 1px solid rgba(173,198,255,0.20);">
-            Trust Floor: <strong style="color:#d8e2ff; margin-left:3px;">0.05</strong>
+            Trust Floor: 0.05
         </span>
         <div style="display: flex; align-items: center; gap: 0.5rem; background: #1c1f2a; padding: 0.25rem 0.75rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.08);">
             <div style="font-size: 0.82rem; color: #dfe2f1; font-weight: 600;">{user['name']}</div>
-            <span style="font-size: 0.65rem; color: #22d3ee; background: rgba(34,211,238,0.12); padding: 0.1rem 0.4rem; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-weight: 700;">CLEARANCE ALPHA</span>
+            <span style="font-size: 0.65rem; color: #22d3ee; background: rgba(34,211,238,0.12); padding: 0.1rem 0.4rem; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-weight: 700;">ALPHA</span>
         </div>
     </div>
 </div>
