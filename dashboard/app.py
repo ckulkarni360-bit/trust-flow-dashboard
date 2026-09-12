@@ -104,15 +104,16 @@ COLOR_MUTED = "#859397"       # Stitch outline
 COLOR_TEXT = "#DFE2F1"        # Stitch on-surface
 COLOR_TEXT_MUTED = "#BBC9CD"  # Stitch on-surface-variant
 
-@st.cache_data(show_spinner=False)
 def load_bg_img_b64() -> str:
-    """Load and base64-encode cyber_bg.jpg for CSS background.
+    """Load and base64-encode sample_frame.jpg for CSS background.
 
     :returns: Base64-encoded JPEG string, or empty string if file is missing.
     """
-    if BG_IMG.exists():
+    sample_file = ASSETS_DIR / "sample_frame.jpg"
+    target = sample_file if sample_file.exists() else BG_IMG
+    if target.exists():
         try:
-            with open(BG_IMG, "rb") as fh:
+            with open(target, "rb") as fh:
                 return base64.b64encode(fh.read()).decode("utf-8")
         except Exception:
             return ""
@@ -166,30 +167,41 @@ html, body {{
     font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif !important;
     background-color: #06080E !important;
     color: #DFE2F1 !important;
+    min-height: 100vh !important;
+    background-image:
+        linear-gradient(rgba(6, 8, 14, 0.22) 0%, rgba(6, 8, 14, 0.38) 100%),
+        {_bg_img_layer} !important;
+    background-size: cover !important;
+    background-position: center top !important;
+    background-repeat: no-repeat !important;
+    background-attachment: fixed !important;
 }}
 
 /* =========================================================
    MAIN BACKGROUND — sample_frame.jpg Cyber Command Center
    ========================================================= */
-[data-testid="stAppViewContainer"], .stApp {{
+[data-testid="stAppViewContainer"], [data-testid="stApp"], .stApp {{
     font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif !important;
     color: #DFE2F1 !important;
-    min-height: 100vh;
-
-    background-color: #06080E;
+    min-height: 100vh !important;
+    background-color: transparent !important;
     background-image:
-        /* Gentle dark tint to ensure crisp text readability while keeping sample_frame.jpg vivid */
-        linear-gradient(rgba(6, 8, 14, 0.35) 0%, rgba(6, 8, 14, 0.48) 100%),
-        {_bg_img_layer};
-
-    background-size: 100% 100%, cover;
-    background-position: center center, center top;
-    background-repeat: no-repeat, no-repeat;
-    background-attachment: fixed, fixed;
+        linear-gradient(rgba(6, 8, 14, 0.22) 0%, rgba(6, 8, 14, 0.38) 100%),
+        {_bg_img_layer} !important;
+    background-size: cover !important;
+    background-position: center top !important;
+    background-repeat: no-repeat !important;
+    background-attachment: fixed !important;
 }}
 
-.main, .block-container {{
+.main, section.main, [data-testid="stMain"], [data-testid="stMainBlockContainer"], [data-testid="stAppViewBlockContainer"], .block-container, [data-testid="stVerticalBlock"] {{
     background: transparent !important;
+    background-color: transparent !important;
+}}
+
+.block-container {{
+    position: relative;
+    z-index: 2;
 }}
 
 /* =========================================================
@@ -609,6 +621,22 @@ body::after {{
 """
 
 st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
+
+if _bg_img_b64:
+    st.markdown(f"""
+<div id="tf-command-bg" style="
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    z-index: -1;
+    pointer-events: none;
+    background-image: linear-gradient(rgba(6, 8, 14, 0.20) 0%, rgba(6, 8, 14, 0.35) 100%), url('data:image/jpeg;base64,{_bg_img_b64}');
+    background-size: cover;
+    background-position: center top;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+"></div>
+""", unsafe_allow_html=True)
 
 # ---------------------------------------------------------------------------
 # PARTICLE NETWORK CANVAS — animated node/edge background (JS)
