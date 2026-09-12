@@ -28,7 +28,7 @@ USERS_FILE = Path(__file__).resolve().parent / "users.json"
 ASSETS_DIR = Path(__file__).resolve().parent / "assets"
 SHIELD_IMG = ASSETS_DIR / "soc_shield.jpg"
 MESH_IMG = ASSETS_DIR / "threat_mesh.jpg"
-BG_IMG = ASSETS_DIR / "cyber_bg.jpg"
+BG_IMG = ASSETS_DIR / "sample_frame.jpg"
 
 
 
