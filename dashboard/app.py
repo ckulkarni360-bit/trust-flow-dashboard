@@ -121,8 +121,35 @@ def load_video_b64() -> str:
     return ""
 
 
+def load_bg_image_b64() -> str:
+    """Load and base64-encode the fallback background image (cyber_bg.jpg).
+
+    Used as a CSS background so the visual is always present even when the
+    MP4 video cannot be embedded (e.g. Streamlit Cloud file-size limits).
+
+    :returns: Base64-encoded JPEG string, or empty string if file is missing.
+    """
+    for candidate in [
+        ASSETS_DIR / "cyber_bg.jpg",
+        ASSETS_DIR / "sample_frame.jpg",
+        ASSETS_DIR / "soc_shield.jpg",
+    ]:
+        if candidate.exists():
+            try:
+                with open(candidate, "rb") as fh:
+                    return base64.b64encode(fh.read()).decode("utf-8")
+            except Exception:
+                continue
+    return ""
+
+
 _video_b64 = load_video_b64()
-_bg_img_layer = "none"  # video replaces static image background
+_bg_b64 = load_bg_image_b64()
+_bg_img_layer = (
+    f'url("data:image/jpeg;base64,{_bg_b64}")'
+    if _bg_b64
+    else "none"
+)
 
 CUSTOM_CSS = f"""
 <style>
@@ -194,7 +221,11 @@ html, body {{
         /* cyan radial glow */
         radial-gradient(ellipse 70% 55% at 15% 20%, rgba(34, 211, 238, 0.07) 0%, transparent 70%),
         /* blue radial glow */
-        radial-gradient(ellipse 65% 50% at 85% 80%, rgba(173, 198, 255, 0.05) 0%, transparent 70%);
+        radial-gradient(ellipse 65% 50% at 85% 80%, rgba(173, 198, 255, 0.05) 0%, transparent 70%),
+        /* dark overlay over background image */
+        linear-gradient(rgba(15, 19, 29, 0.72), rgba(15, 19, 29, 0.82)),
+        /* cyber_bg.jpg background photo */
+        {_bg_img_layer};
 
     background-size:
         30px 30px,
@@ -202,9 +233,11 @@ html, body {{
         90px 90px,
         90px 90px,
         100% 100%,
-        100% 100%;
-    background-position: 0 0, 0 0, 0 0, 0 0, center, center;
-    background-repeat: repeat, repeat, repeat, repeat, no-repeat, no-repeat;
+        100% 100%,
+        100% 100%,
+        cover;
+    background-position: 0 0, 0 0, 0 0, 0 0, center, center, center, center;
+    background-repeat: repeat, repeat, repeat, repeat, no-repeat, no-repeat, no-repeat, no-repeat;
     background-attachment: fixed;
     animation: gridPan 12s linear infinite;
 }}
@@ -772,43 +805,18 @@ def render_auth_portal():
             st.image(str(SHIELD_IMG), use_container_width=True)
         st.markdown("""
         <div style="padding: 0.8rem 0.2rem 1rem 0.2rem;">
-            <!-- Quote / caption above the app name -->
-            <div style="
-                font-family: 'JetBrains Mono', monospace;
-                font-size: 0.72rem;
-                font-weight: 600;
-                color: #22D3EE;
-                text-transform: uppercase;
-                letter-spacing: 0.14em;
-                margin-bottom: 0.6rem;
-                display: flex;
-                align-items: center;
-                gap: 0.5rem;
-            ">
-                <span style="flex: 1; height: 1px; background: linear-gradient(90deg, #22D3EE44, transparent);"></span>
-                🛡️ &nbsp;Trust no one. Verify everything. Defend everywhere.
-                <span style="flex: 1; height: 1px; background: linear-gradient(90deg, transparent, #22D3EE44);"></span>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:0.72rem;font-weight:600;color:#22D3EE;text-transform:uppercase;letter-spacing:0.14em;margin-bottom:0.6rem;display:flex;align-items:center;gap:0.5rem;">
+                <span style="flex:1;height:1px;background:linear-gradient(90deg,#22D3EE44,transparent);"></span>
+                &#x1F6E1;&#xFE0F; &nbsp;Trust no one. Verify everything. Defend everywhere.
+                <span style="flex:1;height:1px;background:linear-gradient(90deg,transparent,#22D3EE44);"></span>
             </div>
-
-            <!-- Big bold app name -->
-            <div style="
-                font-family: 'Plus Jakarta Sans', sans-serif;
-                font-size: 3rem;
-                font-weight: 800;
-                color: #FFFFFF;
-                letter-spacing: -0.04em;
-                line-height: 1;
-                margin-bottom: 0.5rem;
-            ">
-                Trust<span style="color: #22D3EE; text-shadow: 0 0 28px rgba(34,211,238,0.75);">FL</span>
+            <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:3rem;font-weight:800;color:#FFFFFF;letter-spacing:-0.04em;line-height:1;margin-bottom:0.5rem;">
+                Trust<span style="color:#22D3EE;text-shadow:0 0 28px rgba(34,211,238,0.75);">FL</span>
             </div>
-
-            <!-- Subtitle -->
-            <div style="font-size: 0.95rem; color: #94A3B8; margin-bottom: 1rem; line-height: 1.55;">
+            <div style="font-size:0.95rem;color:#94A3B8;margin-bottom:1rem;line-height:1.55;">
                 Byzantine-Resilient Federated IoT Intrusion Detection
             </div>
-
-            <div style="display: flex; gap: 0.6rem; flex-wrap: wrap;">
+            <div style="display:flex;gap:0.6rem;flex-wrap:wrap;">
                 <span class="tf-badge badge-trust"><span class="tf-badge-dot"></span> Zero-Trust</span>
                 <span class="tf-badge badge-warn"><span class="tf-badge-dot"></span> Byzantine Resilient</span>
                 <span class="tf-badge badge-alert"><span class="tf-badge-dot"></span> Attack Detection</span>
@@ -921,77 +929,19 @@ user = st.session_state.auth_user or {"name": "Guest", "email": "guest@trustfl.o
 
 # Hero banner — shown above navbar on dashboard
 st.markdown(f"""
-<div style="
-    padding: 1.4rem 1.8rem 1.2rem 1.8rem;
-    background: linear-gradient(135deg, rgba(15,19,29,0.92) 0%, rgba(22,30,46,0.92) 100%);
-    border: 1px solid rgba(34,211,238,0.18);
-    border-radius: 14px;
-    margin-bottom: 0.75rem;
-    position: relative;
-    overflow: hidden;
-">
-    <!-- subtle grid overlay -->
-    <div style="
-        position: absolute; inset: 0; pointer-events: none;
-        background-image:
-            linear-gradient(rgba(34,211,238,0.04) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(34,211,238,0.04) 1px, transparent 1px);
-        background-size: 28px 28px;
-        border-radius: 14px;
-    "></div>
-
-    <!-- Accent line top -->
-    <div style="
-        position: absolute; top: 0; left: 1.8rem; right: 1.8rem;
-        height: 2px;
-        background: linear-gradient(90deg, transparent, #22D3EE, transparent);
-        border-radius: 9999px;
-    "></div>
-
-    <div style="position: relative; z-index: 1;">
-        <!-- caption / quote ABOVE the app name -->
-        <div style="
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.68rem;
-            font-weight: 600;
-            color: #22D3EE;
-            letter-spacing: 0.16em;
-            text-transform: uppercase;
-            margin-bottom: 0.55rem;
-            opacity: 0.9;
-        ">
-            🛡️ &nbsp;Trust no one &bull; Verify everything &bull; Defend everywhere
+<div style="padding:1.4rem 1.8rem 1.2rem 1.8rem;background:linear-gradient(135deg,rgba(15,19,29,0.92) 0%,rgba(22,30,46,0.92) 100%);border:1px solid rgba(34,211,238,0.18);border-radius:14px;margin-bottom:0.75rem;position:relative;overflow:hidden;">
+    <div style="position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(rgba(34,211,238,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(34,211,238,0.04) 1px,transparent 1px);background-size:28px 28px;border-radius:14px;"></div>
+    <div style="position:absolute;top:0;left:1.8rem;right:1.8rem;height:2px;background:linear-gradient(90deg,transparent,#22D3EE,transparent);border-radius:9999px;"></div>
+    <div style="position:relative;z-index:1;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:0.68rem;font-weight:600;color:#22D3EE;letter-spacing:0.16em;text-transform:uppercase;margin-bottom:0.55rem;opacity:0.9;">
+            &#x1F6E1;&#xFE0F; &nbsp;Trust no one &bull; Verify everything &bull; Defend everywhere
         </div>
-
-        <!-- big bold app name -->
-        <div style="
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            font-size: 2.6rem;
-            font-weight: 800;
-            letter-spacing: -0.04em;
-            color: #FFFFFF;
-            line-height: 1;
-            margin-bottom: 0.45rem;
-        ">
-            Trust<span style="color: #22D3EE; text-shadow: 0 0 28px rgba(34,211,238,0.8);">FL</span>
-            <span style="
-                font-size: 0.95rem;
-                font-weight: 500;
-                color: {COLOR_MUTED};
-                letter-spacing: -0.01em;
-                margin-left: 0.6rem;
-                vertical-align: middle;
-            ">// Security Console</span>
+        <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:2.6rem;font-weight:800;letter-spacing:-0.04em;color:#FFFFFF;line-height:1;margin-bottom:0.45rem;">
+            Trust<span style="color:#22D3EE;text-shadow:0 0 28px rgba(34,211,238,0.8);">FL</span>
+            <span style="font-size:0.95rem;font-weight:500;color:{COLOR_MUTED};letter-spacing:-0.01em;margin-left:0.6rem;vertical-align:middle;">// Security Console</span>
         </div>
-
-        <!-- italic tagline -->
-        <div style="
-            font-size: 0.88rem;
-            color: #64748B;
-            font-style: italic;
-            letter-spacing: 0.01em;
-        ">
-            &ldquo;Where every gradient is earned, not assumed — federated trust at the edge.&rdquo;
+        <div style="font-size:0.88rem;color:#64748B;font-style:italic;letter-spacing:0.01em;">
+            &ldquo;Where every gradient is earned, not assumed &mdash; federated trust at the edge.&rdquo;
         </div>
     </div>
 </div>
