@@ -772,12 +772,42 @@ def render_auth_portal():
             st.image(str(SHIELD_IMG), use_container_width=True)
         st.markdown("""
         <div style="padding: 0.8rem 0.2rem 1rem 0.2rem;">
-            <div style="font-size: 2.2rem; font-weight: 800; color: #FFFFFF; margin-bottom: 0.3rem; letter-spacing: -0.03em; line-height: 1.1;">
-                Trust<span style="color: #22D3EE; text-shadow: 0 0 20px rgba(34,211,238,0.6);">FL</span>
+            <!-- Quote / caption above the app name -->
+            <div style="
+                font-family: 'JetBrains Mono', monospace;
+                font-size: 0.72rem;
+                font-weight: 600;
+                color: #22D3EE;
+                text-transform: uppercase;
+                letter-spacing: 0.14em;
+                margin-bottom: 0.6rem;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+            ">
+                <span style="flex: 1; height: 1px; background: linear-gradient(90deg, #22D3EE44, transparent);"></span>
+                🛡️ &nbsp;Trust no one. Verify everything. Defend everywhere.
+                <span style="flex: 1; height: 1px; background: linear-gradient(90deg, transparent, #22D3EE44);"></span>
             </div>
-            <div style="font-size: 0.95rem; color: #94A3B8; margin-bottom: 1rem;">
-                Federated IoT Security Platform
+
+            <!-- Big bold app name -->
+            <div style="
+                font-family: 'Plus Jakarta Sans', sans-serif;
+                font-size: 3rem;
+                font-weight: 800;
+                color: #FFFFFF;
+                letter-spacing: -0.04em;
+                line-height: 1;
+                margin-bottom: 0.5rem;
+            ">
+                Trust<span style="color: #22D3EE; text-shadow: 0 0 28px rgba(34,211,238,0.75);">FL</span>
             </div>
+
+            <!-- Subtitle -->
+            <div style="font-size: 0.95rem; color: #94A3B8; margin-bottom: 1rem; line-height: 1.55;">
+                Byzantine-Resilient Federated IoT Intrusion Detection
+            </div>
+
             <div style="display: flex; gap: 0.6rem; flex-wrap: wrap;">
                 <span class="tf-badge badge-trust"><span class="tf-badge-dot"></span> Zero-Trust</span>
                 <span class="tf-badge badge-warn"><span class="tf-badge-dot"></span> Byzantine Resilient</span>
@@ -791,11 +821,25 @@ def render_auth_portal():
         st.markdown("""
         <div class="tf-card" style="border-top: 3px solid #22D3EE; padding: 2.2rem 2rem;">
             <div style="text-align: center; margin-bottom: 1.5rem;">
-                <div style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 2rem; font-weight: 800; letter-spacing: -0.03em; color: #FFFFFF; margin-bottom: 0.3rem;">
-                    Trust<span style="color: #22D3EE; text-shadow: 0 0 18px rgba(34,211,238,0.7);">FL</span>
+                <div style="
+                    font-family: 'JetBrains Mono', monospace;
+                    font-size: 0.62rem;
+                    color: #22D3EE;
+                    letter-spacing: 0.12em;
+                    text-transform: uppercase;
+                    margin-bottom: 0.55rem;
+                    opacity: 0.85;
+                ">
+                    🔒 &nbsp;Zero-Trust &bull; Federated &bull; Byzantine-Resilient
                 </div>
-                <div style="font-size: 0.85rem; color: #64748B;">
-                    Sign in to your account
+                <div style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 2.2rem; font-weight: 800; letter-spacing: -0.04em; color: #FFFFFF; margin-bottom: 0.2rem; line-height: 1;">
+                    Trust<span style="color: #22D3EE; text-shadow: 0 0 22px rgba(34,211,238,0.75);">FL</span>
+                </div>
+                <div style="font-size: 0.82rem; color: #64748B; font-style: italic; margin-bottom: 0.25rem;">
+                    &ldquo;Where every gradient is earned, not assumed.&rdquo;
+                </div>
+                <div style="font-size: 0.78rem; color: #475569; margin-top: 0.5rem;">
+                    Sign in to access the Security Console
                 </div>
             </div>
         """, unsafe_allow_html=True)
@@ -875,12 +919,88 @@ if not st.session_state.auth_user:
 # ---------------------------------------------------------------------------
 user = st.session_state.auth_user or {"name": "Guest", "email": "guest@trustfl.org"}
 
+# Hero banner — shown above navbar on dashboard
 st.markdown(f"""
-<div class="tf-navbar">
-    <div style="display: flex; align-items: center; gap: 0.8rem;">
-        <div style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1.7rem; font-weight: 800; letter-spacing: -0.03em; color: #FFFFFF; line-height: 1;">
-            Trust<span style="color: #22D3EE; text-shadow: 0 0 18px rgba(34,211,238,0.7);">FL</span>
+<div style="
+    padding: 1.4rem 1.8rem 1.2rem 1.8rem;
+    background: linear-gradient(135deg, rgba(15,19,29,0.92) 0%, rgba(22,30,46,0.92) 100%);
+    border: 1px solid rgba(34,211,238,0.18);
+    border-radius: 14px;
+    margin-bottom: 0.75rem;
+    position: relative;
+    overflow: hidden;
+">
+    <!-- subtle grid overlay -->
+    <div style="
+        position: absolute; inset: 0; pointer-events: none;
+        background-image:
+            linear-gradient(rgba(34,211,238,0.04) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(34,211,238,0.04) 1px, transparent 1px);
+        background-size: 28px 28px;
+        border-radius: 14px;
+    "></div>
+
+    <!-- Accent line top -->
+    <div style="
+        position: absolute; top: 0; left: 1.8rem; right: 1.8rem;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, #22D3EE, transparent);
+        border-radius: 9999px;
+    "></div>
+
+    <div style="position: relative; z-index: 1;">
+        <!-- caption / quote ABOVE the app name -->
+        <div style="
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.68rem;
+            font-weight: 600;
+            color: #22D3EE;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            margin-bottom: 0.55rem;
+            opacity: 0.9;
+        ">
+            🛡️ &nbsp;Trust no one &bull; Verify everything &bull; Defend everywhere
         </div>
+
+        <!-- big bold app name -->
+        <div style="
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 2.6rem;
+            font-weight: 800;
+            letter-spacing: -0.04em;
+            color: #FFFFFF;
+            line-height: 1;
+            margin-bottom: 0.45rem;
+        ">
+            Trust<span style="color: #22D3EE; text-shadow: 0 0 28px rgba(34,211,238,0.8);">FL</span>
+            <span style="
+                font-size: 0.95rem;
+                font-weight: 500;
+                color: {COLOR_MUTED};
+                letter-spacing: -0.01em;
+                margin-left: 0.6rem;
+                vertical-align: middle;
+            ">// Security Console</span>
+        </div>
+
+        <!-- italic tagline -->
+        <div style="
+            font-size: 0.88rem;
+            color: #64748B;
+            font-style: italic;
+            letter-spacing: 0.01em;
+        ">
+            &ldquo;Where every gradient is earned, not assumed — federated trust at the edge.&rdquo;
+        </div>
+    </div>
+</div>
+
+<div class="tf-navbar" style="margin-bottom: 1.2rem;">
+    <div style="display: flex; align-items: center; gap: 0.8rem;">
+        <span class="tf-badge" style="background: rgba(34,211,238,0.10); color: #8aebff; border: 1px solid rgba(34,211,238,0.22); font-family: 'JetBrains Mono', monospace; font-size: 0.68rem;">
+            SPEC: ENCLAVE-DEFENSE-V4.2
+        </span>
         <span class="tf-badge badge-trust"><span class="tf-badge-dot"></span> Active</span>
     </div>
     <div style="display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;">
@@ -890,9 +1010,12 @@ st.markdown(f"""
         <span class="tf-badge" style="background: rgba(34,211,238,0.12); color: #8aebff; border: 1px solid rgba(34,211,238,0.25);">
             Trust Floor: 0.05
         </span>
+        <span class="tf-badge" style="background: rgba(104,245,184,0.10); color: #68f5b8; border: 1px solid rgba(104,245,184,0.22);">
+            Consensus: Cosine EMA
+        </span>
         <div style="display: flex; align-items: center; gap: 0.5rem; background: #1c1f2a; padding: 0.25rem 0.75rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.08);">
             <div style="font-size: 0.82rem; color: #dfe2f1; font-weight: 600;">{user['name']}</div>
-            <span style="font-size: 0.65rem; color: #22d3ee; background: rgba(34,211,238,0.12); padding: 0.1rem 0.4rem; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-weight: 700;">ALPHA</span>
+            <span style="font-size: 0.65rem; color: #22d3ee; background: rgba(34,211,238,0.12); padding: 0.1rem 0.4rem; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-weight: 700;">CLEARANCE ALPHA</span>
         </div>
     </div>
 </div>
