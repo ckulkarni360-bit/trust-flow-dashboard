@@ -137,22 +137,17 @@ CUSTOM_CSS = f"""
     0%, 100% {{ opacity: 0.18; transform: scale(1);   }}
     50%        {{ opacity: 0.30; transform: scale(1.08); }}
 }}
-@keyframes scanBeam {{
-    /* Realistic scanner: slow start, fast mid, slow end */
-    0%   {{ top: -4%;  opacity: 0;    }}
-    3%   {{ opacity: 1;               }}
-    15%  {{ top: 18%;                 }}
-    50%  {{ top: 50%;                 }}
-    85%  {{ top: 82%;                 }}
-    97%  {{ opacity: 1;               }}
-    100% {{ top: 104%; opacity: 0;    }}
+@keyframes realisticScanner {{
+    0%   {{ top: -4px;  opacity: 0; }}
+    2%   {{ opacity: 1; }}
+    98%  {{ opacity: 1; }}
+    100% {{ top: 100vh; opacity: 0; }}
 }}
-@keyframes scanTrail {{
-    0%   {{ top: -4%;  opacity: 0; height: 0px;  }}
-    3%   {{ opacity: 1;            height: 60px; }}
-    50%  {{ top: 50%;              height: 80px; }}
-    97%  {{ opacity: 0.6;          height: 40px; }}
-    100% {{ top: 104%; opacity: 0; height: 0px;  }}
+@keyframes scannerTrail {{
+    0%   {{ top: -26px; opacity: 0; }}
+    2%   {{ opacity: 0.85; }}
+    98%  {{ opacity: 0.85; }}
+    100% {{ top: calc(100vh - 22px); opacity: 0; }}
 }}
 @keyframes nodeBlink {{
     0%, 80%, 100% {{ opacity: 0.0; }}
@@ -169,46 +164,28 @@ CUSTOM_CSS = f"""
    ========================================================= */
 html, body {{
     font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif !important;
-    background-color: #0F131D !important;
+    background-color: #06080E !important;
     color: #DFE2F1 !important;
 }}
 
 /* =========================================================
-   MAIN BACKGROUND — Stitch obsidian cyber security aesthetic with cyber_bg.jpg
+   MAIN BACKGROUND — sample_frame.jpg Cyber Command Center
    ========================================================= */
 [data-testid="stAppViewContainer"], .stApp {{
     font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif !important;
     color: #DFE2F1 !important;
     min-height: 100vh;
 
-    background-color: #080C14;
+    background-color: #06080E;
     background-image:
-        /* fine stitch grid */
-        linear-gradient(rgba(34, 211, 238, 0.035) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(34, 211, 238, 0.035) 1px, transparent 1px),
-        /* coarse grid */
-        linear-gradient(rgba(34, 211, 238, 0.015) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(34, 211, 238, 0.015) 1px, transparent 1px),
-        /* cyan radial glow */
-        radial-gradient(ellipse 75% 60% at 20% 20%, rgba(34, 211, 238, 0.12) 0%, transparent 65%),
-        /* blue radial glow */
-        radial-gradient(ellipse 70% 50% at 80% 80%, rgba(173, 198, 255, 0.08) 0%, transparent 65%),
-        /* dark overlay gradient over cyber_bg.jpg so content remains high-contrast & legible */
-        linear-gradient(rgba(8, 12, 20, 0.74), rgba(8, 12, 20, 0.82)),
+        /* Gentle dark tint to ensure crisp text readability while keeping sample_frame.jpg vivid */
+        linear-gradient(rgba(6, 8, 14, 0.35) 0%, rgba(6, 8, 14, 0.48) 100%),
         {_bg_img_layer};
 
-    background-size:
-        30px 30px,
-        30px 30px,
-        90px 90px,
-        90px 90px,
-        100% 100%,
-        100% 100%,
-        100% 100%,
-        cover;
-    background-position: 0 0, 0 0, 0 0, 0 0, center, center, center, center;
-    background-repeat: repeat, repeat, repeat, repeat, no-repeat, no-repeat, no-repeat, no-repeat;
-    background-attachment: fixed;
+    background-size: 100% 100%, cover;
+    background-position: center center, center top;
+    background-repeat: no-repeat, no-repeat;
+    background-attachment: fixed, fixed;
 }}
 
 .main, .block-container {{
@@ -216,51 +193,49 @@ html, body {{
 }}
 
 /* =========================================================
-   SCANNER BEAM — primary bright line
+   REALISTIC OPTICAL SCANNER — crisp 1.5px laser sweep
    ========================================================= */
 [data-testid="stAppViewContainer"]::before {{
     content: '';
     position: fixed;
-    left: 0; right: 0;
-    /* 3-layer beam: thin core + mid bloom + wide edge glow */
-    height: 5px;
+    top: -4px;
+    left: 0;
+    right: 0;
+    height: 1.5px;
     background: linear-gradient(
         90deg,
-        transparent            0%,
-        rgba(0,255,220, 0.00)  5%,
-        rgba(0,220,255, 0.30) 15%,
-        rgba(0,240,255, 0.70) 35%,
-        rgba(180,255,255,1.00) 50%,   /* bright white-cyan core */
-        rgba(0,240,255, 0.70) 65%,
-        rgba(0,220,255, 0.30) 85%,
-        rgba(0,255,220, 0.00) 95%,
-        transparent           100%
+        transparent 0%,
+        rgba(34, 211, 238, 0.25) 8%,
+        rgba(34, 211, 238, 0.85) 25%,
+        #FFFFFF 50%,
+        rgba(34, 211, 238, 0.85) 75%,
+        rgba(34, 211, 238, 0.25) 92%,
+        transparent 100%
     );
-    /* layered box-shadow: core glow + mid bloom + wide diffuse */
     box-shadow:
-        0  0  2px  1px rgba(180, 255, 255, 0.90),
-        0  0  8px  3px rgba(0,   220, 255, 0.65),
-        0  0 18px  6px rgba(0,   200, 255, 0.40),
-        0  0 40px 12px rgba(0,   180, 255, 0.18),
-        0  0 80px 24px rgba(0,   160, 255, 0.08);
-    animation: scanBeam 7s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+        0 0 4px rgba(255, 255, 255, 0.9),
+        0 0 8px rgba(34, 211, 238, 0.70),
+        0 0 16px rgba(34, 211, 238, 0.35);
+    animation: realisticScanner 5.5s linear infinite;
     z-index: 9999;
     pointer-events: none;
 }}
 
-/* trailing glow below the beam */
+/* Subtle optical phosphor trailing wash */
 [data-testid="stAppViewContainer"]::after {{
     content: '';
     position: fixed;
-    left: 0; right: 0;
+    top: -26px;
+    left: 0;
+    right: 0;
+    height: 22px;
     background: linear-gradient(
         180deg,
-        rgba(0, 220, 255, 0.18) 0%,
-        rgba(0, 180, 255, 0.10) 30%,
-        rgba(0, 120, 200, 0.04) 65%,
-        transparent             100%
+        transparent 0%,
+        rgba(34, 211, 238, 0.04) 50%,
+        rgba(34, 211, 238, 0.16) 100%
     );
-    animation: scanTrail 7s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+    animation: scannerTrail 5.5s linear infinite;
     z-index: 9998;
     pointer-events: none;
 }}
