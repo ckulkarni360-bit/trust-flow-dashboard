@@ -104,52 +104,23 @@ COLOR_MUTED = "#859397"       # Stitch outline
 COLOR_TEXT = "#DFE2F1"        # Stitch on-surface
 COLOR_TEXT_MUTED = "#BBC9CD"  # Stitch on-surface-variant
 
-VIDEO_BG = ASSETS_DIR / "cyber_bg.mp4"
-
 @st.cache_data(show_spinner=False)
-def load_video_b64() -> str:
-    """Load and base64-encode the background video for inline embedding.
+def load_bg_img_b64() -> str:
+    """Load and base64-encode cyber_bg.jpg for CSS background.
 
-    :returns: Base64-encoded mp4 string, or empty string if file is missing.
+    :returns: Base64-encoded JPEG string, or empty string if file is missing.
     """
-    if VIDEO_BG.exists():
+    if BG_IMG.exists():
         try:
-            with open(VIDEO_BG, "rb") as fh:
+            with open(BG_IMG, "rb") as fh:
                 return base64.b64encode(fh.read()).decode("utf-8")
         except Exception:
             return ""
     return ""
 
 
-def load_bg_image_b64() -> str:
-    """Load and base64-encode the fallback background image (cyber_bg.jpg).
-
-    Used as a CSS background so the visual is always present even when the
-    MP4 video cannot be embedded (e.g. Streamlit Cloud file-size limits).
-
-    :returns: Base64-encoded JPEG string, or empty string if file is missing.
-    """
-    for candidate in [
-        ASSETS_DIR / "cyber_bg.jpg",
-        ASSETS_DIR / "sample_frame.jpg",
-        ASSETS_DIR / "soc_shield.jpg",
-    ]:
-        if candidate.exists():
-            try:
-                with open(candidate, "rb") as fh:
-                    return base64.b64encode(fh.read()).decode("utf-8")
-            except Exception:
-                continue
-    return ""
-
-
-_video_b64 = load_video_b64()
-_bg_b64 = load_bg_image_b64()
-_bg_img_layer = (
-    f'url("data:image/jpeg;base64,{_bg_b64}")'
-    if _bg_b64
-    else "none"
-)
+_bg_img_b64 = load_bg_img_b64()
+_bg_img_layer = f"url('data:image/jpeg;base64,{_bg_img_b64}')" if _bg_img_b64 else "none"
 
 CUSTOM_CSS = f"""
 <style>
@@ -203,28 +174,27 @@ html, body {{
 }}
 
 /* =========================================================
-   MAIN BACKGROUND — Stitch obsidian cyber security aesthetic
+   MAIN BACKGROUND — Stitch obsidian cyber security aesthetic with cyber_bg.jpg
    ========================================================= */
 [data-testid="stAppViewContainer"], .stApp {{
     font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif !important;
     color: #DFE2F1 !important;
     min-height: 100vh;
 
-    background-color: #0F131D;
+    background-color: #080C14;
     background-image:
         /* fine stitch grid */
-        linear-gradient(rgba(34, 211, 238, 0.030) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(34, 211, 238, 0.030) 1px, transparent 1px),
+        linear-gradient(rgba(34, 211, 238, 0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(34, 211, 238, 0.035) 1px, transparent 1px),
         /* coarse grid */
         linear-gradient(rgba(34, 211, 238, 0.015) 1px, transparent 1px),
         linear-gradient(90deg, rgba(34, 211, 238, 0.015) 1px, transparent 1px),
         /* cyan radial glow */
-        radial-gradient(ellipse 70% 55% at 15% 20%, rgba(34, 211, 238, 0.07) 0%, transparent 70%),
+        radial-gradient(ellipse 75% 60% at 20% 20%, rgba(34, 211, 238, 0.12) 0%, transparent 65%),
         /* blue radial glow */
-        radial-gradient(ellipse 65% 50% at 85% 80%, rgba(173, 198, 255, 0.05) 0%, transparent 70%),
-        /* dark overlay over background image */
-        linear-gradient(rgba(15, 19, 29, 0.72), rgba(15, 19, 29, 0.82)),
-        /* cyber_bg.jpg background photo */
+        radial-gradient(ellipse 70% 50% at 80% 80%, rgba(173, 198, 255, 0.08) 0%, transparent 65%),
+        /* dark overlay gradient over cyber_bg.jpg so content remains high-contrast & legible */
+        linear-gradient(rgba(8, 12, 20, 0.74), rgba(8, 12, 20, 0.82)),
         {_bg_img_layer};
 
     background-size:
@@ -239,29 +209,10 @@ html, body {{
     background-position: 0 0, 0 0, 0 0, 0 0, center, center, center, center;
     background-repeat: repeat, repeat, repeat, repeat, no-repeat, no-repeat, no-repeat, no-repeat;
     background-attachment: fixed;
-    animation: gridPan 12s linear infinite;
 }}
 
-/* Video background container */
-#tf-video-bg {{
-    position: fixed;
-    top: 0; left: 0;
-    width: 100vw; height: 100vh;
-    z-index: -1;
-    overflow: hidden;
-    pointer-events: none;
-}}
-#tf-video-bg video {{
-    width: 100%; height: 100%;
-    object-fit: cover;
-    opacity: 0.18;
-    filter: brightness(0.7) saturate(1.3);
-}}
-#tf-video-bg::after {{
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(rgba(15,19,29,0.82), rgba(15,19,29,0.90));
+.main, .block-container {{
+    background: transparent !important;
 }}
 
 /* =========================================================
@@ -685,18 +636,6 @@ body::after {{
 st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
 
 # ---------------------------------------------------------------------------
-# FULLSCREEN VIDEO BACKGROUND
-# ---------------------------------------------------------------------------
-if _video_b64:
-    st.markdown(f"""
-<div id="tf-video-bg">
-    <video autoplay muted loop playsinline preload="auto">
-        <source src="data:video/mp4;base64,{_video_b64}" type="video/mp4">
-    </video>
-</div>
-""", unsafe_allow_html=True)
-
-# ---------------------------------------------------------------------------
 # PARTICLE NETWORK CANVAS — animated node/edge background (JS)
 # ---------------------------------------------------------------------------
 st.markdown("""
@@ -803,54 +742,42 @@ def render_auth_portal():
         st.markdown("<br>", unsafe_allow_html=True)
         if SHIELD_IMG.exists():
             st.image(str(SHIELD_IMG), use_container_width=True)
-        st.markdown("""
-        <div style="padding: 0.8rem 0.2rem 1rem 0.2rem;">
-            <div style="font-family:'JetBrains Mono',monospace;font-size:0.72rem;font-weight:600;color:#22D3EE;text-transform:uppercase;letter-spacing:0.14em;margin-bottom:0.6rem;display:flex;align-items:center;gap:0.5rem;">
-                <span style="flex:1;height:1px;background:linear-gradient(90deg,#22D3EE44,transparent);"></span>
-                &#x1F6E1;&#xFE0F; &nbsp;Trust no one. Verify everything. Defend everywhere.
-                <span style="flex:1;height:1px;background:linear-gradient(90deg,transparent,#22D3EE44);"></span>
-            </div>
-            <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:3rem;font-weight:800;color:#FFFFFF;letter-spacing:-0.04em;line-height:1;margin-bottom:0.5rem;">
-                Trust<span style="color:#22D3EE;text-shadow:0 0 28px rgba(34,211,238,0.75);">FL</span>
-            </div>
-            <div style="font-size:0.95rem;color:#94A3B8;margin-bottom:1rem;line-height:1.55;">
-                Byzantine-Resilient Federated IoT Intrusion Detection
-            </div>
-            <div style="display:flex;gap:0.6rem;flex-wrap:wrap;">
-                <span class="tf-badge badge-trust"><span class="tf-badge-dot"></span> Zero-Trust</span>
-                <span class="tf-badge badge-warn"><span class="tf-badge-dot"></span> Byzantine Resilient</span>
-                <span class="tf-badge badge-alert"><span class="tf-badge-dot"></span> Attack Detection</span>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown("""<div style="padding: 0.8rem 0.2rem 1rem 0.2rem;">
+<div style="font-family:'JetBrains Mono',monospace; font-size:0.72rem; font-weight:600; color:#22D3EE; text-transform:uppercase; letter-spacing:0.14em; margin-bottom:0.6rem; display:flex; align-items:center; gap:0.5rem;">
+<span style="flex:1; height:1px; background:linear-gradient(90deg,#22D3EE44,transparent);"></span>
+🛡️ &nbsp;Trust no one. Verify everything. Defend everywhere.
+<span style="flex:1; height:1px; background:linear-gradient(90deg,transparent,#22D3EE44);"></span>
+</div>
+<div style="font-family:'Plus Jakarta Sans',sans-serif; font-size:3rem; font-weight:800; color:#FFFFFF; letter-spacing:-0.04em; line-height:1; margin-bottom:0.5rem;">
+Trust<span style="color:#22D3EE; text-shadow:0 0 28px rgba(34,211,238,0.75);">FL</span>
+</div>
+<div style="font-size:0.95rem; color:#94A3B8; margin-bottom:1rem; line-height:1.55;">
+Byzantine-Resilient Federated IoT Intrusion Detection
+</div>
+<div style="display:flex; gap:0.6rem; flex-wrap:wrap;">
+<span class="tf-badge badge-trust"><span class="tf-badge-dot"></span> Zero-Trust</span>
+<span class="tf-badge badge-warn"><span class="tf-badge-dot"></span> Byzantine Resilient</span>
+<span class="tf-badge badge-alert"><span class="tf-badge-dot"></span> Attack Detection</span>
+</div>
+</div>""", unsafe_allow_html=True)
 
     with col_auth:
         st.markdown("<br>", unsafe_allow_html=True)
-        st.markdown("""
-        <div class="tf-card" style="border-top: 3px solid #22D3EE; padding: 2.2rem 2rem;">
-            <div style="text-align: center; margin-bottom: 1.5rem;">
-                <div style="
-                    font-family: 'JetBrains Mono', monospace;
-                    font-size: 0.62rem;
-                    color: #22D3EE;
-                    letter-spacing: 0.12em;
-                    text-transform: uppercase;
-                    margin-bottom: 0.55rem;
-                    opacity: 0.85;
-                ">
-                    🔒 &nbsp;Zero-Trust &bull; Federated &bull; Byzantine-Resilient
-                </div>
-                <div style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 2.2rem; font-weight: 800; letter-spacing: -0.04em; color: #FFFFFF; margin-bottom: 0.2rem; line-height: 1;">
-                    Trust<span style="color: #22D3EE; text-shadow: 0 0 22px rgba(34,211,238,0.75);">FL</span>
-                </div>
-                <div style="font-size: 0.82rem; color: #64748B; font-style: italic; margin-bottom: 0.25rem;">
-                    &ldquo;Where every gradient is earned, not assumed.&rdquo;
-                </div>
-                <div style="font-size: 0.78rem; color: #475569; margin-top: 0.5rem;">
-                    Sign in to access the Security Console
-                </div>
-            </div>
-        """, unsafe_allow_html=True)
+        st.markdown("""<div class="tf-card" style="border-top: 3px solid #22D3EE; padding: 2.2rem 2rem;">
+<div style="text-align: center; margin-bottom: 1.5rem;">
+<div style="font-family: 'JetBrains Mono', monospace; font-size: 0.62rem; color: #22D3EE; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 0.55rem; opacity: 0.85;">
+🔒 &nbsp;Zero-Trust &bull; Federated &bull; Byzantine-Resilient
+</div>
+<div style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 2.2rem; font-weight: 800; letter-spacing: -0.04em; color: #FFFFFF; margin-bottom: 0.2rem; line-height: 1;">
+Trust<span style="color: #22D3EE; text-shadow: 0 0 22px rgba(34,211,238,0.75);">FL</span>
+</div>
+<div style="font-size: 0.82rem; color: #64748B; font-style: italic; margin-bottom: 0.25rem;">
+&ldquo;Where every gradient is earned, not assumed.&rdquo;
+</div>
+<div style="font-size: 0.78rem; color: #475569; margin-top: 0.5rem;">
+Sign in to access the Security Console
+</div>
+</div>""", unsafe_allow_html=True)
 
         tab_signin, tab_signup = st.tabs(["Sign In", "Create Account"])
 
@@ -928,48 +855,40 @@ if not st.session_state.auth_user:
 user = st.session_state.auth_user or {"name": "Guest", "email": "guest@trustfl.org"}
 
 # Hero banner — shown above navbar on dashboard
-st.markdown(f"""
-<div style="padding:1.4rem 1.8rem 1.2rem 1.8rem;background:linear-gradient(135deg,rgba(15,19,29,0.92) 0%,rgba(22,30,46,0.92) 100%);border:1px solid rgba(34,211,238,0.18);border-radius:14px;margin-bottom:0.75rem;position:relative;overflow:hidden;">
-    <div style="position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(rgba(34,211,238,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(34,211,238,0.04) 1px,transparent 1px);background-size:28px 28px;border-radius:14px;"></div>
-    <div style="position:absolute;top:0;left:1.8rem;right:1.8rem;height:2px;background:linear-gradient(90deg,transparent,#22D3EE,transparent);border-radius:9999px;"></div>
-    <div style="position:relative;z-index:1;">
-        <div style="font-family:'JetBrains Mono',monospace;font-size:0.68rem;font-weight:600;color:#22D3EE;letter-spacing:0.16em;text-transform:uppercase;margin-bottom:0.55rem;opacity:0.9;">
-            &#x1F6E1;&#xFE0F; &nbsp;Trust no one &bull; Verify everything &bull; Defend everywhere
-        </div>
-        <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:2.6rem;font-weight:800;letter-spacing:-0.04em;color:#FFFFFF;line-height:1;margin-bottom:0.45rem;">
-            Trust<span style="color:#22D3EE;text-shadow:0 0 28px rgba(34,211,238,0.8);">FL</span>
-            <span style="font-size:0.95rem;font-weight:500;color:{COLOR_MUTED};letter-spacing:-0.01em;margin-left:0.6rem;vertical-align:middle;">// Security Console</span>
-        </div>
-        <div style="font-size:0.88rem;color:#64748B;font-style:italic;letter-spacing:0.01em;">
-            &ldquo;Where every gradient is earned, not assumed &mdash; federated trust at the edge.&rdquo;
-        </div>
-    </div>
+st.markdown(f"""<div style="padding:1.4rem 1.8rem 1.2rem 1.8rem; background:linear-gradient(135deg,rgba(15,19,29,0.92) 0%,rgba(22,30,46,0.92) 100%); border:1px solid rgba(34,211,238,0.18); border-radius:14px; margin-bottom:0.75rem; position:relative; overflow:hidden;">
+<div style="position:absolute; inset:0; pointer-events:none; background-image:linear-gradient(rgba(34,211,238,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(34,211,238,0.04) 1px,transparent 1px); background-size:28px 28px; border-radius:14px;"></div>
+<div style="position:absolute; top:0; left:1.8rem; right:1.8rem; height:2px; background:linear-gradient(90deg,transparent,#22D3EE,transparent); border-radius:9999px;"></div>
+<div style="position:relative; z-index:1;">
+<div style="font-family:'JetBrains Mono',monospace; font-size:0.68rem; font-weight:600; color:#22D3EE; letter-spacing:0.16em; text-transform:uppercase; margin-bottom:0.55rem; opacity:0.9;">
+🛡️ &nbsp;Trust no one &bull; Verify everything &bull; Defend everywhere
+</div>
+<div style="font-family:'Plus Jakarta Sans',sans-serif; font-size:2.6rem; font-weight:800; letter-spacing:-0.04em; color:#FFFFFF; line-height:1; margin-bottom:0.45rem;">
+Trust<span style="color:#22D3EE; text-shadow:0 0 28px rgba(34,211,238,0.8);">FL</span>
+<span style="font-size:0.95rem; font-weight:500; color:{COLOR_MUTED}; letter-spacing:-0.01em; margin-left:0.6rem; vertical-align:middle;">// Security Console</span>
+</div>
+<div style="font-size:0.88rem; color:#64748B; font-style:italic; letter-spacing:0.01em;">
+&ldquo;Where every gradient is earned, not assumed &mdash; federated trust at the edge.&rdquo;
+</div>
+</div>
 </div>
 
 <div class="tf-navbar" style="margin-bottom: 1.2rem;">
-    <div style="display: flex; align-items: center; gap: 0.8rem;">
-        <span class="tf-badge" style="background: rgba(34,211,238,0.10); color: #8aebff; border: 1px solid rgba(34,211,238,0.22); font-family: 'JetBrains Mono', monospace; font-size: 0.68rem;">
-            SPEC: ENCLAVE-DEFENSE-V4.2
-        </span>
-        <span class="tf-badge badge-trust"><span class="tf-badge-dot"></span> Active</span>
-    </div>
-    <div style="display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;">
-        <span class="tf-badge badge-trust">
-            <span class="tf-badge-dot"></span> 4 Nodes
-        </span>
-        <span class="tf-badge" style="background: rgba(34,211,238,0.12); color: #8aebff; border: 1px solid rgba(34,211,238,0.25);">
-            Trust Floor: 0.05
-        </span>
-        <span class="tf-badge" style="background: rgba(104,245,184,0.10); color: #68f5b8; border: 1px solid rgba(104,245,184,0.22);">
-            Consensus: Cosine EMA
-        </span>
-        <div style="display: flex; align-items: center; gap: 0.5rem; background: #1c1f2a; padding: 0.25rem 0.75rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.08);">
-            <div style="font-size: 0.82rem; color: #dfe2f1; font-weight: 600;">{user['name']}</div>
-            <span style="font-size: 0.65rem; color: #22d3ee; background: rgba(34,211,238,0.12); padding: 0.1rem 0.4rem; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-weight: 700;">CLEARANCE ALPHA</span>
-        </div>
-    </div>
+<div style="display: flex; align-items: center; gap: 0.8rem;">
+<span class="tf-badge" style="background: rgba(34,211,238,0.10); color: #8aebff; border: 1px solid rgba(34,211,238,0.22); font-family: 'JetBrains Mono', monospace; font-size: 0.68rem;">
+SPEC: ENCLAVE-DEFENSE-V4.2
+</span>
+<span class="tf-badge badge-trust"><span class="tf-badge-dot"></span> Active</span>
 </div>
-""", unsafe_allow_html=True)
+<div style="display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;">
+<span class="tf-badge badge-trust"><span class="tf-badge-dot"></span> 4 Nodes</span>
+<span class="tf-badge" style="background: rgba(34,211,238,0.12); color: #8aebff; border: 1px solid rgba(34,211,238,0.25);">Trust Floor: 0.05</span>
+<span class="tf-badge" style="background: rgba(104,245,184,0.10); color: #68f5b8; border: 1px solid rgba(104,245,184,0.22);">Consensus: Cosine EMA</span>
+<div style="display: flex; align-items: center; gap: 0.5rem; background: #1c1f2a; padding: 0.25rem 0.75rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.08);">
+<div style="font-size: 0.82rem; color: #dfe2f1; font-weight: 600;">{user['name']}</div>
+<span style="font-size: 0.65rem; color: #22d3ee; background: rgba(34,211,238,0.12); padding: 0.1rem 0.4rem; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-weight: 700;">CLEARANCE ALPHA</span>
+</div>
+</div>
+</div>""", unsafe_allow_html=True)
 
 with st.sidebar:
     if SHIELD_IMG.exists():
@@ -1600,7 +1519,6 @@ with tab_live:
         position: relative;
         overflow: hidden;
     ">
-        <!-- animated radar rings -->
         <div style="position:absolute; top:24px; right:28px; width:48px; height:48px;">
             <div class="live-radar-ring" style="animation-delay:0s;"></div>
             <div class="live-radar-ring" style="animation-delay:0.7s;"></div>
