@@ -138,17 +138,22 @@ CUSTOM_CSS = f"""
     0%, 100% {{ opacity: 0.18; transform: scale(1);   }}
     50%        {{ opacity: 0.30; transform: scale(1.08); }}
 }}
-@keyframes realisticScanner {{
+@keyframes naturalScanner {{
     0%   {{ top: -4px;  opacity: 0; }}
-    2%   {{ opacity: 1; }}
-    98%  {{ opacity: 1; }}
-    100% {{ top: 100vh; opacity: 0; }}
+    2%   {{ opacity: 0.95; }}
+    22%  {{ opacity: 1.0; }}
+    48%  {{ opacity: 0.90; }}
+    70%  {{ top: 100vh; opacity: 1.0; }}
+    72%  {{ top: 102vh; opacity: 0; }}
+    100% {{ top: 102vh; opacity: 0; }}
 }}
-@keyframes scannerTrail {{
+@keyframes naturalScannerTrail {{
     0%   {{ top: -26px; opacity: 0; }}
     2%   {{ opacity: 0.85; }}
-    98%  {{ opacity: 0.85; }}
-    100% {{ top: calc(100vh - 22px); opacity: 0; }}
+    48%  {{ opacity: 0.75; }}
+    70%  {{ top: calc(100vh - 22px); opacity: 0.85; }}
+    72%  {{ top: 100vh; opacity: 0; }}
+    100% {{ top: 100vh; opacity: 0; }}
 }}
 @keyframes nodeBlink {{
     0%, 80%, 100% {{ opacity: 0.0; }}
@@ -205,7 +210,7 @@ html, body {{
 }}
 
 /* =========================================================
-   REALISTIC OPTICAL SCANNER — crisp 1.5px laser sweep
+   NATURAL OPTICAL SCANNER — Realistic 1.5px laser sweep with 1.8s pause cycle
    ========================================================= */
 [data-testid="stAppViewContainer"]::before {{
     content: '';
@@ -217,18 +222,18 @@ html, body {{
     background: linear-gradient(
         90deg,
         transparent 0%,
-        rgba(34, 211, 238, 0.25) 8%,
-        rgba(34, 211, 238, 0.85) 25%,
+        rgba(34, 211, 238, 0.15) 6%,
+        rgba(34, 211, 238, 0.85) 24%,
         #FFFFFF 50%,
-        rgba(34, 211, 238, 0.85) 75%,
-        rgba(34, 211, 238, 0.25) 92%,
+        rgba(34, 211, 238, 0.85) 76%,
+        rgba(34, 211, 238, 0.15) 94%,
         transparent 100%
     );
     box-shadow:
-        0 0 4px rgba(255, 255, 255, 0.9),
-        0 0 8px rgba(34, 211, 238, 0.70),
-        0 0 16px rgba(34, 211, 238, 0.35);
-    animation: realisticScanner 5.5s linear infinite;
+        0 0 4px rgba(255, 255, 255, 0.95),
+        0 0 10px rgba(34, 211, 238, 0.80),
+        0 0 22px rgba(34, 211, 238, 0.40);
+    animation: naturalScanner 6.2s cubic-bezier(0.25, 1, 0.5, 1) infinite;
     z-index: 9999;
     pointer-events: none;
 }}
@@ -240,14 +245,14 @@ html, body {{
     top: -26px;
     left: 0;
     right: 0;
-    height: 22px;
+    height: 24px;
     background: linear-gradient(
         180deg,
         transparent 0%,
-        rgba(34, 211, 238, 0.04) 50%,
-        rgba(34, 211, 238, 0.16) 100%
+        rgba(34, 211, 238, 0.03) 40%,
+        rgba(34, 211, 238, 0.18) 100%
     );
-    animation: scannerTrail 5.5s linear infinite;
+    animation: naturalScannerTrail 6.2s cubic-bezier(0.25, 1, 0.5, 1) infinite;
     z-index: 9998;
     pointer-events: none;
 }}
@@ -745,19 +750,34 @@ def render_auth_portal():
         st.markdown("<br>", unsafe_allow_html=True)
         if SHIELD_IMG.exists():
             st.image(str(SHIELD_IMG), use_container_width=True)
-        st.markdown("""<div style="padding: 0.8rem 0.2rem 1rem 0.2rem;">
-<div style="font-family:'JetBrains Mono',monospace; font-size:0.72rem; font-weight:600; color:#22D3EE; text-transform:uppercase; letter-spacing:0.14em; margin-bottom:0.6rem; display:flex; align-items:center; gap:0.5rem;">
-<span style="flex:1; height:1px; background:linear-gradient(90deg,#22D3EE44,transparent);"></span>
+        st.markdown("""<div style="padding: 0.8rem 0.2rem 1rem 0.2rem; text-align: center; display: flex; flex-direction: column; align-items: center;">
+<div style="font-family:'JetBrains Mono',monospace; font-size:0.72rem; font-weight:600; color:#22D3EE; text-transform:uppercase; letter-spacing:0.14em; margin-bottom:0.6rem; display:flex; align-items:center; justify-content:center; gap:0.5rem; width:100%;">
+<span style="flex:1; max-width:80px; height:1px; background:linear-gradient(90deg,transparent,#22D3EE44);"></span>
 🛡️ &nbsp;Trust no one. Verify everything. Defend everywhere.
-<span style="flex:1; height:1px; background:linear-gradient(90deg,transparent,#22D3EE44);"></span>
+<span style="flex:1; max-width:80px; height:1px; background:linear-gradient(90deg,#22D3EE44,transparent);"></span>
 </div>
-<div style="font-family:'Plus Jakarta Sans',sans-serif; font-size:3rem; font-weight:800; color:#FFFFFF; letter-spacing:-0.04em; line-height:1; margin-bottom:0.5rem;">
+<div style="display:flex; align-items:center; justify-content:center; gap:0.8rem; margin-bottom:0.5rem;">
+<div style="width:42px; height:42px; display:flex; align-items:center; justify-content:center; background:rgba(34,211,238,0.08); border:1px solid rgba(34,211,238,0.35); border-radius:10px; box-shadow:0 0 16px rgba(34,211,238,0.25);">
+<svg width="28" height="28" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter:drop-shadow(0 0 6px rgba(34,211,238,0.7));">
+<path d="M50 8 L86 24 V52 C86 73 50 93 50 93 C50 93 14 73 14 52 V24 L50 8 Z" stroke="#22D3EE" stroke-width="4.5" fill="rgba(15,23,42,0.85)"/>
+<path d="M50 20 L76 32 V50 C76 64 50 78 50 78 C50 78 24 64 24 50 V32 L50 20 Z" stroke="rgba(34,211,238,0.6)" stroke-width="2.5" fill="rgba(34,211,238,0.12)"/>
+<circle cx="50" cy="48" r="8" fill="#68F5B8" style="filter:drop-shadow(0 0 6px #68F5B8);"/>
+<line x1="50" y1="28" x2="50" y2="40" stroke="#22D3EE" stroke-width="2.5" stroke-dasharray="2 2"/>
+<line x1="36" y1="56" x2="44" y2="52" stroke="#22D3EE" stroke-width="2.5"/>
+<line x1="64" y1="56" x2="56" y2="52" stroke="#22D3EE" stroke-width="2.5"/>
+<circle cx="50" cy="28" r="3.5" fill="#22D3EE"/>
+<circle cx="34" cy="58" r="3.5" fill="#22D3EE"/>
+<circle cx="66" cy="58" r="3.5" fill="#22D3EE"/>
+</svg>
+</div>
+<div style="font-family:'Plus Jakarta Sans',sans-serif; font-size:3rem; font-weight:800; color:#FFFFFF; letter-spacing:-0.04em; line-height:1;">
 Trust<span style="color:#22D3EE; text-shadow:0 0 28px rgba(34,211,238,0.75);">FL</span>
 </div>
-<div style="font-size:0.95rem; color:#94A3B8; margin-bottom:1rem; line-height:1.55;">
+</div>
+<div style="font-size:0.95rem; color:#94A3B8; margin-bottom:1rem; line-height:1.55; text-align:center;">
 Byzantine-Resilient Federated IoT Intrusion Detection
 </div>
-<div style="display:flex; gap:0.6rem; flex-wrap:wrap;">
+<div style="display:flex; gap:0.6rem; flex-wrap:wrap; justify-content:center;">
 <span class="tf-badge badge-trust"><span class="tf-badge-dot"></span> Zero-Trust</span>
 <span class="tf-badge badge-warn"><span class="tf-badge-dot"></span> Byzantine Resilient</span>
 <span class="tf-badge badge-alert"><span class="tf-badge-dot"></span> Attack Detection</span>
@@ -858,18 +878,35 @@ if not st.session_state.auth_user:
 user = st.session_state.auth_user or {"name": "Guest", "email": "guest@trustfl.org"}
 
 # Hero banner — shown above navbar on dashboard
-st.markdown(f"""<div style="padding:1.4rem 1.8rem 1.2rem 1.8rem; background:linear-gradient(135deg,rgba(15,19,29,0.92) 0%,rgba(22,30,46,0.92) 100%); border:1px solid rgba(34,211,238,0.18); border-radius:14px; margin-bottom:0.75rem; position:relative; overflow:hidden;">
-<div style="position:absolute; inset:0; pointer-events:none; background-image:linear-gradient(rgba(34,211,238,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(34,211,238,0.04) 1px,transparent 1px); background-size:28px 28px; border-radius:14px;"></div>
-<div style="position:absolute; top:0; left:1.8rem; right:1.8rem; height:2px; background:linear-gradient(90deg,transparent,#22D3EE,transparent); border-radius:9999px;"></div>
-<div style="position:relative; z-index:1;">
-<div style="font-family:'JetBrains Mono',monospace; font-size:0.68rem; font-weight:600; color:#22D3EE; letter-spacing:0.16em; text-transform:uppercase; margin-bottom:0.55rem; opacity:0.9;">
-🛡️ &nbsp;Trust no one &bull; Verify everything &bull; Defend everywhere
+st.markdown(f"""<div style="padding:1.6rem 2rem 1.4rem 2rem; background:linear-gradient(135deg,rgba(12,16,26,0.92) 0%,rgba(18,24,38,0.92) 100%); border:1px solid rgba(34,211,238,0.22); border-radius:16px; margin-bottom:0.85rem; position:relative; overflow:hidden; text-align:center; display:flex; flex-direction:column; align-items:center; justify-content:center; backdrop-filter:blur(14px);">
+<div style="position:absolute; inset:0; pointer-events:none; background-image:linear-gradient(rgba(34,211,238,0.035) 1px,transparent 1px),linear-gradient(90deg,rgba(34,211,238,0.035) 1px,transparent 1px); background-size:28px 28px; border-radius:16px;"></div>
+<div style="position:absolute; top:0; left:15%; right:15%; height:2px; background:linear-gradient(90deg,transparent,#22D3EE,transparent); border-radius:9999px;"></div>
+<div style="position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; justify-content:center; width:100%;">
+<div style="font-family:'JetBrains Mono',monospace; font-size:0.70rem; font-weight:600; color:#22D3EE; letter-spacing:0.18em; text-transform:uppercase; margin-bottom:0.6rem; opacity:0.95; display:flex; align-items:center; justify-content:center; gap:0.8rem; width:100%;">
+<span style="flex:1; max-width:140px; height:1px; background:linear-gradient(90deg,transparent,rgba(34,211,238,0.5));"></span>
+🛡️ &nbsp;TRUST NO ONE &bull; VERIFY EVERYTHING &bull; DEFEND EVERYWHERE
+<span style="flex:1; max-width:140px; height:1px; background:linear-gradient(90deg,rgba(34,211,238,0.5),transparent);"></span>
 </div>
-<div style="font-family:'Plus Jakarta Sans',sans-serif; font-size:2.6rem; font-weight:800; letter-spacing:-0.04em; color:#FFFFFF; line-height:1; margin-bottom:0.45rem;">
-Trust<span style="color:#22D3EE; text-shadow:0 0 28px rgba(34,211,238,0.8);">FL</span>
-<span style="font-size:0.95rem; font-weight:500; color:{COLOR_MUTED}; letter-spacing:-0.01em; margin-left:0.6rem; vertical-align:middle;">// Security Console</span>
+<div style="display:flex; align-items:center; justify-content:center; gap:1rem; margin-bottom:0.35rem;">
+<div style="width:46px; height:46px; display:flex; align-items:center; justify-content:center; background:rgba(34,211,238,0.08); border:1px solid rgba(34,211,238,0.35); border-radius:12px; box-shadow:0 0 20px rgba(34,211,238,0.25);">
+<svg width="32" height="32" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter:drop-shadow(0 0 8px rgba(34,211,238,0.7));">
+<path d="M50 8 L86 24 V52 C86 73 50 93 50 93 C50 93 14 73 14 52 V24 L50 8 Z" stroke="#22D3EE" stroke-width="4.5" fill="rgba(15,23,42,0.85)"/>
+<path d="M50 20 L76 32 V50 C76 64 50 78 50 78 C50 78 24 64 24 50 V32 L50 20 Z" stroke="rgba(34,211,238,0.6)" stroke-width="2.5" fill="rgba(34,211,238,0.12)"/>
+<circle cx="50" cy="48" r="8" fill="#68F5B8" style="filter:drop-shadow(0 0 6px #68F5B8);"/>
+<line x1="50" y1="28" x2="50" y2="40" stroke="#22D3EE" stroke-width="2.5" stroke-dasharray="2 2"/>
+<line x1="36" y1="56" x2="44" y2="52" stroke="#22D3EE" stroke-width="2.5"/>
+<line x1="64" y1="56" x2="56" y2="52" stroke="#22D3EE" stroke-width="2.5"/>
+<circle cx="50" cy="28" r="3.5" fill="#22D3EE"/>
+<circle cx="34" cy="58" r="3.5" fill="#22D3EE"/>
+<circle cx="66" cy="58" r="3.5" fill="#22D3EE"/>
+</svg>
 </div>
-<div style="font-size:0.88rem; color:#64748B; font-style:italic; letter-spacing:0.01em;">
+<div style="font-family:'Plus Jakarta Sans',sans-serif; font-size:2.8rem; font-weight:800; letter-spacing:-0.04em; color:#FFFFFF; line-height:1;">
+Trust<span style="color:#22D3EE; text-shadow:0 0 32px rgba(34,211,238,0.85);">FL</span>
+<span style="font-size:0.95rem; font-weight:600; color:{COLOR_MUTED}; letter-spacing:0.04em; margin-left:0.75rem; vertical-align:middle; font-family:'JetBrains Mono',monospace;">// SECURITY CONSOLE</span>
+</div>
+</div>
+<div style="font-size:0.90rem; color:#94A3B8; font-style:italic; letter-spacing:0.01em; margin-top:0.2rem;">
 &ldquo;Where every gradient is earned, not assumed &mdash; federated trust at the edge.&rdquo;
 </div>
 </div>
